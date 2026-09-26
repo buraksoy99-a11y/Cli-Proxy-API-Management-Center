@@ -81,6 +81,20 @@ describe('tank model', () => {
     expect(model.freeResets).toBe(1);
   });
 
+  test('reads a just-refilled account as full even though Anthropic sends no reset time', () => {
+    const model = tank('c1', 'claude', {
+      status: 'success',
+      windows: [
+        { id: 'five-hour', usedPercent: 0, resetAtMs: null, periodHours: 5 },
+        { id: 'seven-day', usedPercent: 0, resetAtMs: null, periodHours: 168 },
+      ],
+    });
+    expect(model.level).toBe(100);
+    expect(model.levelResetMs).toBeNull();
+    expect(model.weekly).toBe(100);
+    expect(model.resting).toBeFalse();
+  });
+
   test('falls back to the only window and draws no duplicate weekly tube', () => {
     const model = tank('k1', 'kimi', kimiWeeklyOnly);
     expect(model.level).toBe(70);

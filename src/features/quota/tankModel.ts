@@ -81,25 +81,49 @@ export function tankShortName(name: string, provider: string, email?: string): s
   return /^\d+$/.test(local) ? stem : local;
 }
 
-interface ClaudeWindowLike {
+interface NamedWindowLike {
   id?: string;
   usedPercent?: number | null;
   resetAtMs?: number | null;
 }
 
+interface WindowReading {
+  remaining: number;
+  resetMs: number | null;
+}
+
+/** Account-wide window ids for the providers whose windows are named. */
+const NAMED_WINDOWS: Partial<Record<QuotaProviderType, { short: string; weekly: string }>> = {
+  claude: { short: 'five-hour', weekly: 'seven-day' },
+  codex: { short: 'five-hour', weekly: 'weekly' },
+};
+
 /**
- * Claude reports several weekly windows (account-wide plus per model). The
- * weekly tube must show the account-wide one; the generic lane picker would
- * take whichever weekly window resets first.
+ * Reads the account-wide short and weekly windows by id.
+ *
+ * Two reasons not to go through the generic lane picker here. Claude reports
+ * several weekly windows (account-wide plus per model) and the picker takes
+ * whichever resets first. And a window nobody has used yet comes back with no
+ * reset instant (`resets_at: null`), which the picker skips, so a freshly
+ * refilled account, right after a free reset, would read as unknown instead
+ * of full.
  */
-function claudeAccountWeekly(quota: unknown): { remaining: number; resetMs: number | null } | null {
-  const windows = (quota as { windows?: ClaudeWindowLike[] }).windows ?? [];
-  const weekly = windows.find((window) => window.id === 'seven-day');
-  if (!weekly || typeof weekly.usedPercent !== 'number') return null;
-  return {
-    remaining: clampPercent(100 - weekly.usedPercent),
-    resetMs: typeof weekly.resetAtMs === 'number' ? weekly.resetAtMs : null,
+function readNamedWindows(
+  provider: QuotaProviderType,
+  quota: unknown
+): { short: WindowReading | null; weekly: WindowReading | null } | null {
+  const ids = NAMED_WINDOWS[provider];
+  if (!ids) return null;
+  const windows = (quota as { windows?: NamedWindowLike[] }).windows ?? [];
+  const read = (id: string): WindowReading | null => {
+    const window = windows.find((candidate) => candidate.id === id);
+    if (!window || typeof window.usedPercent !== 'number') return null;
+    return {
+      remaining: clampPercent(100 - window.usedPercent),
+      resetMs: typeof window.resetAtMs === 'number' ? window.resetAtMs : null,
+    };
   };
+  return { short: read(ids.short), weekly: read(ids.weekly) };
 }
 
 function freeResetsOf(provider: QuotaProviderType, quota: unknown): number {
@@ -144,25 +168,35 @@ export function buildTankModel(input: TankInput): TankModel {
   };
   if (status !== 'success') return base;
 
+  const freeResets = freeResetsOf(input.provider, input.quota);
+  const named = readNamedWindows(input.provider, input.quota);
+  if (named?.short) {
+    return {
+      ...base,
+      level: named.short.remaining,
+      levelResetMs: named.short.resetMs,
+      weekly: named.weekly?.remaining ?? null,
+      weeklyResetMs: named.weekly?.resetMs ?? null,
+      freeResets,
+      resting: named.short.remaining <= 0,
+    };
+  }
+
   const session = laneFor(input, TANK_SESSION_MAX_HOURS);
   const week = laneFor(input, TANK_WEEK_HOURS);
   const levelIsLong = (session.periodHours ?? 0) > TANK_SESSION_MAX_HOURS;
-  const claudeWeekly = input.provider === 'claude' ? claudeAccountWeekly(input.quota) : null;
-
   // With a single window the level already shows it (short or long), so a tube
   // would draw the same number twice and is left out.
   const weekIsDistinct = !levelIsLong && (week.periodHours ?? 0) > TANK_SESSION_MAX_HOURS;
-  const weekly = claudeWeekly?.remaining ?? (weekIsDistinct ? week.remaining : null);
-  const weeklyResetMs = claudeWeekly ? claudeWeekly.resetMs : weekIsDistinct ? week.anchorMs : null;
 
   return {
     ...base,
     level: session.remaining,
     levelResetMs: session.anchorMs,
     levelIsLong,
-    weekly,
-    weeklyResetMs,
-    freeResets: freeResetsOf(input.provider, input.quota),
+    weekly: weekIsDistinct ? week.remaining : null,
+    weeklyResetMs: weekIsDistinct ? week.anchorMs : null,
+    freeResets,
     resting: session.remaining !== null && session.remaining <= 0,
   };
 }

@@ -29,6 +29,8 @@ const join = (...names: string[]) => names.filter(Boolean).join(' ');
 const rowClasses: QuotaClassMap = {
   ...baseClasses,
   quotaRow: join(baseClasses.quotaRow, styles.cell),
+  quotaRowHeader: join(baseClasses.quotaRowHeader, styles.cellHeader),
+  quotaMeta: join(baseClasses.quotaMeta, styles.cellMeta),
   quotaMessage: join(baseClasses.quotaMessage, styles.full),
   codexPlan: join(baseClasses.codexPlan, styles.full),
   codexResetCredits: join(baseClasses.codexResetCredits, styles.full),

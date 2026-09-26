@@ -378,18 +378,9 @@ export function QuotaPage() {
 
   return (
     <div className={styles.page} ref={revealRef}>
-      <header className={styles.topbar} data-reveal>
-        <h1 className={styles.title}>{t('quota_management.title')}</h1>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleRefreshAll}
-          disabled={disableControls || refreshing}
-        >
-          <IconRefreshCw size={14} className={refreshing ? styles.spinning : undefined} />
-          {t('quota_management.refresh_all_credentials')}
-        </Button>
-      </header>
+      <h1 className={styles.title} data-reveal>
+        {t('quota_management.title')}
+      </h1>
 
       <QuotaSummary
         summary={summary}
@@ -447,6 +438,15 @@ export function QuotaPage() {
               size="sm"
             />
           </div>
+          <button
+            type="button"
+            className={styles.refreshAll}
+            onClick={handleRefreshAll}
+            disabled={disableControls || refreshing}
+          >
+            <IconRefreshCw size={14} className={refreshing ? styles.spinning : undefined} />
+            {t('quota_management.refresh_all_credentials')}
+          </button>
         </div>
 
         {error && (

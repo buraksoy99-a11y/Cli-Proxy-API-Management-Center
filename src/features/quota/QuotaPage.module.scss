@@ -223,20 +223,10 @@
 
 /* ---------- tank-farm layout ---------- */
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-
-  :global(.btn) {
-    gap: 8px;
-  }
-}
-
 .title {
   margin: 0;
+  /* Clears the layout's floating header actions in the top-right corner. */
+  padding-right: 200px;
   color: var(--text-primary);
   font: 800 30px/1 $tank-display;
   letter-spacing: 0.01em;
@@ -244,6 +234,38 @@
 
 .spinning {
   animation: quota-spin 0.9s linear infinite;
+}
+
+/* Ink pill, the page's one primary action (inverts in dark themes). */
+.refreshAll {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
 }
 
 @keyframes quota-spin {
@@ -292,5 +314,17 @@
 @media (prefers-reduced-motion: reduce) {
   .spinning {
     animation: none;
+  }
+}
+
+/* Search takes the free space so sort and refresh sit together on the right. */
+.toolbar > .search {
+  margin-right: auto;
+}
+
+/* On phones the floating actions sit on their own row above the page. */
+@media (max-width: 768px) {
+  .title {
+    padding-right: 0;
   }
 }

@@ -4,7 +4,8 @@
 .row {
   @include tank-tokens;
   display: grid;
-  grid-template-columns: minmax(190px, 1fr) minmax(0, 2.6fr) auto;
+  /* Fixed action column so every row's limits start at the same x. */
+  grid-template-columns: minmax(190px, 1fr) minmax(0, 2.6fr) 196px;
   gap: 18px;
   align-items: center;
   padding: 14px 16px;
@@ -71,12 +72,27 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px 18px;
   align-items: start;
 }
 
 .cell {
+  min-width: 0;
+}
+
+/* Label on its own line, then percent + reset, wrapping inside the cell.
+   Scoped under .grid so it wins over the shared QuotaBody rules. */
+.grid .cellHeader {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.grid .cellMeta {
+  flex-wrap: wrap;
+  flex-shrink: 1;
+  row-gap: 2px;
   min-width: 0;
 }
 
