@@ -1,8 +1,10 @@
 /**
- * 额度查询页：提供商 tabs + 统一卡网格。
+ * Quota page: summary headline, tank farm, 24-hour refill forecast and a
+ * detail row per credential.
  *
- * 保留的行为契约（重设计不改）：
- * - 现有提供商保持点击加载；Devin 首次可见时主动查询一次，不轮询；
+ * Behaviour contracts kept from the card-grid version:
+ * - every visible credential is read once per visit (useQuotaAutoLoad) and never
+ *   polled; Devin keeps its own first-sight query;
  * - cacheGeneration 会话隔离 + request-id 去重（见 useQuotaBatchLoader）；
  * - 文件列表变化后按 provider 剪枝额度缓存（已删文件不残留）；
  * - useHeaderRefresh 单槽位：本页唯一注册者，全局刷新 = 重取文件列表。
@@ -13,21 +15,21 @@ import { useTranslation } from 'react-i18next';
 import { authFilesApi } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { IconSearch, IconX } from '@/components/ui/icons';
+import { IconRefreshCw, IconSearch, IconX } from '@/components/ui/icons';
 import { Select } from '@/components/ui/Select';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { useNow } from '@/hooks/useNow';
-import { useRevealGroup } from '@/hooks/motion';
+import { prefersReducedMotion, useRevealGroup } from '@/hooks/motion';
 import { useAuthStore, useQuotaStore, useThemeStore } from '@/stores';
 import type { AuthFileItem, ResolvedTheme } from '@/types';
 import { getQuotaCacheKey } from '@/utils/quota/identity';
 import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
-import { QuotaHeader } from './components/QuotaHeader';
-import { QuotaCard } from './components/QuotaCard';
-import { QuotaTimeline } from './components/QuotaTimeline';
+import { QuotaSummary } from './components/QuotaSummary';
+import { TankFarm } from './components/TankFarm';
+import { RefillForecast } from './components/RefillForecast';
+import { QuotaAccountRow } from './components/QuotaAccountRow';
 import {
-  CARD_ENTRANCE_BUDGET_MS,
   QUOTA_PAGE_SIZE,
   QUOTA_SORT_MODES,
   QUOTA_TAB_ORDER,
@@ -45,6 +47,8 @@ import {
   type QuotaFileEntry,
 } from './logic';
 import { nextRecoveryMs } from './resetSchedule';
+import { buildFarmSummary, buildForecastEvents, buildTankModel, type TankModel } from './tankModel';
+import { useQuotaAutoLoad } from './hooks/useQuotaAutoLoad';
 import { QUOTA_ADAPTERS, getQuotaSetter, type QuotaCardState } from './providers';
 import type { QuotaProviderType } from './providers/types';
 import { useDevinQuotaAutoLoad } from './providers/devin/useDevinQuotaAutoLoad';
@@ -56,11 +60,7 @@ import styles from './QuotaPage.module.scss';
 const TAB_IDS: string[] = ['all', ...QUOTA_TAB_ORDER];
 const SKELETON_CARD_COUNT = 6;
 
-/**
- * Existing providers display filenames; Devin's card and timeline share an
- * identity-aware display label. Keep the filename fallback stable for memoization.
- */
-const displayNameFor = (name: string) => name;
+const tankKeyOf = (entry: QuotaFileEntry) => `${entry.type}:${getQuotaCacheKey(entry.file)}`;
 
 export function QuotaPage() {
   const { t } = useTranslation();
@@ -205,17 +205,6 @@ export function QuotaPage() {
     [t]
   );
 
-  const { loadedCount, attentionCount } = useMemo(() => {
-    let loaded = 0;
-    let attention = 0;
-    entries.forEach((entry) => {
-      const status = quotaByType[entry.type][getQuotaCacheKey(entry.file)]?.status;
-      if (status === 'success') loaded += 1;
-      else if (status === 'error') attention += 1;
-    });
-    return { loadedCount: loaded, attentionCount: attention };
-  }, [entries, quotaByType]);
-
   // 剪枝：文件列表落定后，各 provider 缓存只保留仍存在的凭证
   useEffect(() => {
     if (loading || error || filesGeneration !== sessionGeneration) return;
@@ -278,6 +267,14 @@ export function QuotaPage() {
     }
   }, [disableControls, error, filesGeneration, loading, loadQuota, pageItems, sessionGeneration]);
 
+  const autoLoadDisabled =
+    disableControls ||
+    loading ||
+    batchLoading ||
+    Boolean(error) ||
+    filesGeneration !== sessionGeneration;
+  useQuotaAutoLoad(pageItems, autoLoadDisabled, getQuota, loadQuota);
+
   useDevinQuotaAutoLoad(
     pageItems,
     disableControls ||
@@ -290,37 +287,116 @@ export function QuotaPage() {
 
   const canUseActions = !disableControls && !loading && filesGeneration === sessionGeneration;
 
-  /* ---------- 首屏卡片一次性级联入场 ----------
-   * 首批数据渲染后立即翻转 cardsAnimated；已挂载的卡片在挂载时捕获过自己的
-   * 延迟（QuotaCard 内 useState 初始化），后续切 tab/翻页/刷新新挂载的卡片
-   * 拿到 null —— 不重播。 */
+  /* ---------- tanks, summary, forecast ---------- */
 
-  const [cardsAnimated, setCardsAnimated] = useState(false);
-  const enableCardEntrance = !cardsAnimated && !loading && pageItems.length > 0;
-  useEffect(() => {
-    if (enableCardEntrance) {
-      setCardsAnimated(true);
-    }
-  }, [enableCardEntrance]);
-  const cardEntranceDelay = (index: number): number | null => {
-    if (!enableCardEntrance) return null;
-    if (pageItems.length <= 1) return 0;
-    return Math.round((index / (pageItems.length - 1)) * CARD_ENTRANCE_BUDGET_MS);
-  };
+  const clockNow = useNow();
+  const toTank = useCallback(
+    (entry: QuotaFileEntry): TankModel =>
+      buildTankModel({
+        key: tankKeyOf(entry),
+        name: entry.file.name,
+        email: entry.file.email,
+        provider: entry.type,
+        quota: getQuota(entry),
+      }),
+    [getQuota]
+  );
+  const allTanks = useMemo(() => entries.map(toTank), [entries, toTank]);
+  const pageTanks = useMemo(() => pageItems.map(toTank), [pageItems, toTank]);
+  const summary = useMemo(
+    () => buildFarmSummary(allTanks, QUOTA_TAB_ORDER, clockNow),
+    [allTanks, clockNow]
+  );
+  const forecastEvents = useMemo(
+    () => buildForecastEvents(pageTanks, clockNow),
+    [pageTanks, clockNow]
+  );
+  const forecastProviders = useMemo(
+    () => QUOTA_TAB_ORDER.filter((type) => pageItems.some((entry) => entry.type === type)),
+    [pageItems]
+  );
 
-  /* ---------- 渲染 ---------- */
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const rowNodes = useRef(new Map<string, HTMLElement>());
+  const entryByKey = useMemo(
+    () => new Map(entries.map((entry) => [tankKeyOf(entry), entry])),
+    [entries]
+  );
+
+  const jumpTo = useCallback(
+    (key: string) => {
+      const entry = entryByKey.get(key);
+      if (!entry) return;
+      // A credential on another tab or page is brought into view first.
+      if (!pageItems.some((item) => tankKeyOf(item) === key)) {
+        setTab('all');
+        setSearch('');
+        const index = sortQuotaEntries(entries, sortMode, resolveNextRecovery).findIndex(
+          (item) => tankKeyOf(item) === key
+        );
+        setPage(Math.floor(Math.max(0, index) / QUOTA_PAGE_SIZE) + 1);
+      }
+      setSelectedKey(key);
+      window.requestAnimationFrame(() =>
+        rowNodes.current.get(key)?.scrollIntoView({
+          behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          block: 'center',
+        })
+      );
+    },
+    [entries, entryByKey, pageItems, resolveNextRecovery, sortMode]
+  );
+
+  const handleTankSelect = useCallback(
+    (tank: TankModel) => {
+      const entry = entryByKey.get(tank.key);
+      if (!entry) return;
+      if (tank.status === 'idle' || tank.status === 'error') {
+        if (canUseActions && !entry.file.disabled) {
+          void refreshQuota(entry.file, QUOTA_ADAPTERS[entry.type]);
+        }
+        return;
+      }
+      if (selectedKey === tank.key) {
+        setSelectedKey(null);
+        return;
+      }
+      jumpTo(tank.key);
+    },
+    [canUseActions, entryByKey, jumpTo, refreshQuota, selectedKey]
+  );
+
+  const freeResetsByKey = useMemo(
+    () => new Map(pageTanks.map((tank) => [tank.key, tank.freeResets])),
+    [pageTanks]
+  );
+
+  /* ---------- render ---------- */
 
   const isEmpty = !loading && filteredEntries.length === 0;
+  const refreshing = loading || batchLoading;
 
   return (
     <div className={styles.page} ref={revealRef}>
-      <QuotaHeader
-        totalCount={entries.length}
-        loadedCount={loadedCount}
-        attentionCount={attentionCount}
-        refreshing={loading || batchLoading}
-        disableControls={disableControls}
-        onRefreshAll={handleRefreshAll}
+      <header className={styles.topbar} data-reveal>
+        <h1 className={styles.title}>{t('quota_management.title')}</h1>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={handleRefreshAll}
+          disabled={disableControls || refreshing}
+        >
+          <IconRefreshCw size={14} className={refreshing ? styles.spinning : undefined} />
+          {t('quota_management.refresh_all_credentials')}
+        </Button>
+      </header>
+
+      <QuotaSummary
+        summary={summary}
+        nowMs={clockNow}
+        listLoading={loading}
+        resolvedTheme={resolvedTheme}
+        onJump={jumpTo}
       />
 
       <section className={styles.workbench}>
@@ -379,10 +455,10 @@ export function QuotaPage() {
           </div>
         )}
 
-        {loading ? (
-          <div className={styles.grid} aria-hidden="true">
+        {loading && pageItems.length === 0 ? (
+          <div className={styles.skeletonFarm} aria-hidden="true">
             {Array.from({ length: SKELETON_CARD_COUNT }, (_, index) => (
-              <Skeleton key={index} height={168} rounded={14} />
+              <Skeleton key={index} height={250} rounded={14} />
             ))}
           </div>
         ) : isEmpty ? (
@@ -414,21 +490,13 @@ export function QuotaPage() {
             }
           />
         ) : (
-          <div className={styles.grid}>
-            {pageItems.map((entry, index) => (
-              <QuotaCard
-                key={`${entry.type}:${getQuotaCacheKey(entry.file)}`}
-                entry={entry}
-                quota={getQuota(entry)}
-                resolvedTheme={resolvedTheme}
-                canRefresh={canUseActions && !entry.file.disabled}
-                resetting={resettingQuotaName === getQuotaCacheKey(entry.file)}
-                entranceDelayMs={cardEntranceDelay(index)}
-                onRefresh={() => void refreshQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
-                onReset={() => resetQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
-              />
-            ))}
-          </div>
+          <TankFarm
+            tanks={pageTanks}
+            nowMs={clockNow}
+            selectedKey={selectedKey}
+            resolvedTheme={resolvedTheme}
+            onSelect={handleTankSelect}
+          />
         )}
 
         {!loading && filteredEntries.length > QUOTA_PAGE_SIZE && (
@@ -458,15 +526,55 @@ export function QuotaPage() {
             </Button>
           </div>
         )}
-
-        {/* 时间线只比较当前页凭证，避免大量凭证一次性生成无界泳道。 */}
-        <QuotaTimeline
-          entries={pageItems}
-          quotaFor={getQuota}
-          displayNameFor={displayNameFor}
-          resolvedTheme={resolvedTheme}
-        />
       </section>
+
+      {pageItems.length > 0 && (
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2>{t('quota_tank.forecast_title')}</h2>
+            <p>{t('quota_tank.forecast_desc')}</p>
+          </div>
+          <RefillForecast
+            events={forecastEvents}
+            providers={forecastProviders}
+            nowMs={clockNow}
+            resolvedTheme={resolvedTheme}
+            onJump={jumpTo}
+          />
+        </section>
+      )}
+
+      {pageItems.length > 0 && (
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <h2>{t('quota_tank.accounts_title')}</h2>
+            <p>{t('quota_tank.accounts_desc')}</p>
+          </div>
+          <div className={styles.rows}>
+            {pageItems.map((entry) => {
+              const key = tankKeyOf(entry);
+              return (
+                <QuotaAccountRow
+                  key={key}
+                  ref={(node) => {
+                    if (node) rowNodes.current.set(key, node);
+                    else rowNodes.current.delete(key);
+                  }}
+                  entry={entry}
+                  quota={getQuota(entry)}
+                  resolvedTheme={resolvedTheme}
+                  selected={selectedKey === key}
+                  canRefresh={canUseActions && !entry.file.disabled}
+                  resetting={resettingQuotaName === getQuotaCacheKey(entry.file)}
+                  freeResets={freeResetsByKey.get(key) ?? 0}
+                  onRefresh={() => void refreshQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
+                  onReset={() => resetQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,4 +1,6 @@
 @use '../../styles/mixins' as *;
+@use './tankFonts';
+@use './tankTokens' as *;
 
 /* ============================================================
  * 额度页壳层：纯布局，视觉细节都在各组件的 colocated 模块里。
@@ -7,7 +9,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 26px;
   width: 100%;
   min-width: 0;
 }
@@ -216,5 +218,79 @@
 @include mobile {
   .page {
     gap: 16px;
+  }
+}
+
+/* ---------- tank-farm layout ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+
+  :global(.btn) {
+    gap: 8px;
+  }
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font: 800 30px/1 $tank-display;
+  letter-spacing: 0.01em;
+}
+
+.spinning {
+  animation: quota-spin 0.9s linear infinite;
+}
+
+@keyframes quota-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeletonFarm {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 16px 12px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+
+  h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font: 700 24px/1 $tank-display;
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+}
+
+.rows {
+  display: grid;
+  gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
   }
 }

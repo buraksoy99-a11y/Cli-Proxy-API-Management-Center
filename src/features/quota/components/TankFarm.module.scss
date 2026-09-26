@@ -1,0 +1,445 @@
+@use '../../../styles/mixins' as *;
+@use '../tankTokens' as *;
+
+/* ============================================================
+ * Tank farm. The farm keeps its own "night water" yard in every theme;
+ * the level palette is shared with the summary and forecast via tankTokens.
+ * ============================================================ */
+
+.farm {
+  @include tank-tokens;
+  position: relative;
+  padding: 26px 18px 18px;
+  border: 1px solid var(--tank-yard-line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--tank-yard-top), var(--tank-yard-bottom));
+  box-shadow: var(--tank-yard-shadow);
+  color: var(--tank-ink);
+  overflow: hidden;
+}
+
+.tanks {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 16px 12px;
+}
+
+/* ---------- tile ---------- */
+
+.tank {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 0 0 6px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+
+  /* Each tank carries its own pipe segment, so every row gets a connected feed line. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: -8px;
+    left: -8px;
+    z-index: -1;
+    height: 6px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--tank-yard-line) 0 18px,
+      color-mix(in srgb, var(--tank-yard-line) 60%, transparent) 18px 22px
+    );
+    opacity: 0.8;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tank-focus);
+    outline-offset: 4px;
+  }
+
+  &:hover .shell,
+  &.selected .shell {
+    stroke: var(--tank-ink);
+  }
+
+  &.selected .shell {
+    stroke-width: 2.5;
+  }
+}
+
+.dropIn {
+  animation: tank-drop-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes tank-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-36px) scale(0.8);
+  }
+}
+
+.artBox {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 128px;
+}
+
+.art {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.provider {
+  position: absolute;
+  top: -6px;
+  left: 6px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border: 1px solid var(--tank-yard-line);
+  border-radius: 999px;
+  background: var(--tank-chip);
+  font-size: 11px;
+  font-weight: 700;
+
+  img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+}
+
+.token {
+  position: absolute;
+  top: -10px;
+  right: -2px;
+  z-index: 2;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tank-token);
+  color: var(--tank-token-ink);
+  font: 800 15px/1 $tank-display;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--tank-token) 25%, transparent),
+    0 0 22px color-mix(in srgb, var(--tank-token) 70%, transparent);
+  animation: tank-token-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes tank-token-glow {
+  50% {
+    box-shadow:
+      0 0 0 7px color-mix(in srgb, var(--tank-token) 12%, transparent),
+      0 0 30px color-mix(in srgb, var(--tank-token) 90%, transparent);
+  }
+}
+
+.figure {
+  margin-top: 8px;
+  font: 800 34px/1 $tank-display;
+  font-variant-numeric: tabular-nums;
+
+  small {
+    color: var(--tank-muted);
+    font-size: 18px;
+    font-weight: 700;
+  }
+}
+
+.name {
+  max-width: 100%;
+  padding: 0 4px;
+  font-size: 13px;
+  @include text-ellipsis;
+}
+
+.meta {
+  min-height: 18px;
+  color: var(--tank-muted);
+  font-size: 12px;
+
+  &[data-tone='warn'] {
+    color: var(--tank-mid);
+  }
+
+  &[data-tone='bad'] {
+    color: var(--tank-low);
+  }
+}
+
+/* ---------- svg parts ---------- */
+
+.cap {
+  fill: var(--tank-yard-line);
+}
+
+.shell {
+  fill: color-mix(in srgb, var(--tank-yard-bottom) 70%, transparent);
+  stroke: var(--tank-glass-hi);
+  stroke-width: 2;
+  transition: stroke 0.2s;
+}
+
+.shellIdle {
+  stroke-dasharray: 6 5;
+}
+
+.shine {
+  fill: none;
+  stroke: var(--tank-glass);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.ticks line {
+  stroke: var(--tank-glass);
+  stroke-width: 1.5;
+}
+
+.base {
+  fill: var(--tank-yard-line);
+}
+
+.tubeTrack {
+  fill: color-mix(in srgb, var(--tank-yard-line) 80%, transparent);
+}
+
+.tubeFill {
+  transition:
+    y 1.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  @include tone-fill;
+}
+
+.liquid {
+  transition: transform 1.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  @include tone-fill;
+}
+
+.fillIn {
+  animation: tank-fill-in 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+
+@keyframes tank-fill-in {
+  from {
+    transform: translateY(var(--tank-empty));
+  }
+}
+
+.liquidLoading {
+  transform: translateY(#{162 * 0.55}px);
+  opacity: 0.35;
+  animation: tank-loading 1.6s ease-in-out infinite;
+}
+
+@keyframes tank-loading {
+  50% {
+    opacity: 0.6;
+    transform: translateY(#{162 * 0.45}px);
+  }
+}
+
+.waveFront,
+.waveBack {
+  fill: currentColor;
+}
+
+.waveFront {
+  animation: tank-drift 5.5s linear infinite;
+}
+
+.waveBack {
+  opacity: 0.55;
+  animation: tank-drift 8s linear infinite reverse;
+}
+
+@keyframes tank-drift {
+  to {
+    transform: translateX(-60px);
+  }
+}
+
+.bubble {
+  fill: rgba(255, 255, 255, 0.55);
+  animation: tank-bubble 4s ease-in infinite;
+}
+
+@keyframes tank-bubble {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+
+  15% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-120px);
+  }
+}
+
+.hatch {
+  opacity: 0.55;
+}
+
+.hatchStroke {
+  fill: var(--tank-low);
+}
+
+.puddle {
+  fill: color-mix(in srgb, var(--tank-ok) 45%, transparent);
+}
+
+.rest {
+  .drip {
+    fill: var(--tank-ok);
+    transform-box: fill-box;
+    animation: tank-drip 2.8s cubic-bezier(0.55, 0, 1, 0.45) infinite;
+  }
+
+  .dripLate {
+    animation-delay: 1.4s;
+  }
+
+  .ripple {
+    fill: none;
+    stroke: var(--tank-ok);
+    stroke-width: 1.4;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tank-ripple 2.8s ease-out 2.45s infinite;
+  }
+
+  .rippleLate {
+    animation-delay: 3.85s;
+  }
+}
+
+@keyframes tank-drip {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scaleY(0.7);
+  }
+
+  12% {
+    opacity: 0.95;
+  }
+
+  88% {
+    opacity: 0.95;
+    transform: translateY(154px) scaleY(1.25);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(158px) scaleY(0.4);
+  }
+}
+
+@keyframes tank-ripple {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+.restTime {
+  fill: var(--tank-ink);
+  font: 800 20px $tank-display;
+}
+
+.restCaption {
+  fill: var(--tank-muted);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.idleMark path {
+  fill: none;
+  stroke: var(--tank-muted);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+/* ---------- leaving ghost: drains in place, then fades ---------- */
+
+.leaving {
+  position: absolute;
+  pointer-events: none;
+  animation: tank-vanish 300ms ease-in 650ms both;
+
+  .liquid {
+    animation: tank-drain 650ms ease-in forwards;
+  }
+}
+
+@keyframes tank-drain {
+  to {
+    transform: translateY(190px);
+  }
+}
+
+@keyframes tank-vanish {
+  to {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@media (max-width: 760px) {
+  .farm {
+    padding: 22px 12px 14px;
+  }
+
+  .tanks {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px 8px;
+  }
+
+  .figure {
+    font-size: 24px;
+
+    small {
+      font-size: 14px;
+    }
+  }
+}
+
+@media (max-width: 420px) {
+  .tanks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .farm *,
+  .farm *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}

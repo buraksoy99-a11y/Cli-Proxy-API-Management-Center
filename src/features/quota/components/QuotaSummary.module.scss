@@ -1,0 +1,137 @@
+@use '../../../styles/mixins' as *;
+@use '../tankTokens' as *;
+
+.summary {
+  @include tank-tokens;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 32px;
+  align-items: end;
+}
+
+.lead {
+  min-width: 0;
+}
+
+.headline {
+  max-width: 24ch;
+  margin: 0;
+  color: var(--text-primary);
+  font: 700 clamp(34px, 5vw, 56px) / 0.95 $tank-display;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+}
+
+.subline {
+  max-width: 64ch;
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+
+  strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}
+
+.jump {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed currentColor;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tank-focus);
+    outline-offset: 2px;
+  }
+}
+
+.subline .token {
+  color: var(--tank-token);
+}
+
+.failed {
+  color: var(--tank-low);
+}
+
+.pools {
+  display: flex;
+  gap: 18px;
+}
+
+.pool {
+  min-width: 120px;
+}
+
+.poolName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+
+  img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+}
+
+.poolValue {
+  margin-top: 4px;
+  color: var(--text-primary);
+  font: 700 30px/1 $tank-display;
+  font-variant-numeric: tabular-nums;
+}
+
+.poolBar {
+  height: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--border-color);
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: 6px;
+    background: currentColor;
+    transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    @include tone-fill;
+  }
+}
+
+@media (max-width: 760px) {
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  .pools {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pool {
+    min-width: 0;
+  }
+
+  .poolName span {
+    @include text-ellipsis;
+  }
+
+  .poolValue {
+    font-size: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poolBar i {
+    transition: none;
+  }
+}

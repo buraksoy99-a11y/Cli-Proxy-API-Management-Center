@@ -1,0 +1,69 @@
+/* ============================================================
+ * Tank-farm design tokens (no emitted CSS: safe to @use from any module;
+ * the @font-face rules live in _tankFonts.scss, loaded once by the page), shared by the farm, summary and forecast.
+ *
+ * Level palette: sea glass (plenty), amber (running down), coral (nearly out),
+ * slate (resting). Violet is reserved for free resets so it never reads as a
+ * level. Dark values are lifted for contrast on the night-water yard.
+ * ============================================================ */
+
+$tank-display: 'CPA Big Shoulders', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+
+@mixin tank-tokens {
+  --tank-ok: #0f9e84;
+  --tank-mid: #c98a0b;
+  --tank-low: #d9483b;
+  --tank-rest: #9aa9b8;
+  --tank-token: #7b4fe0;
+  --tank-token-ink: #ffffff;
+  --tank-ink: #13243a;
+  --tank-muted: #56687d;
+  --tank-faint: #8797a8;
+  --tank-chip: #f3f7fa;
+  --tank-glass: rgba(19, 36, 58, 0.14);
+  --tank-glass-hi: rgba(19, 36, 58, 0.3);
+  --tank-focus: #1d6fd6;
+  --tank-yard-top: #ffffff;
+  --tank-yard-bottom: #eef3f7;
+  --tank-yard-line: #cad6e0;
+  --tank-yard-shadow: 0 18px 40px -26px rgba(19, 36, 58, 0.35);
+
+  :global([data-theme='dark']) & {
+    --tank-ok: #4fd1b5;
+    --tank-mid: #f4b942;
+    --tank-low: #ff6f61;
+    --tank-rest: #53657b;
+    --tank-token: #c9a2ff;
+    --tank-token-ink: #0f1b2a;
+    --tank-ink: #e7eef5;
+    --tank-muted: #8fa3b8;
+    --tank-faint: #5b6e84;
+    --tank-chip: #1a2d46;
+    --tank-glass: rgba(231, 238, 245, 0.16);
+    --tank-glass-hi: rgba(231, 238, 245, 0.38);
+    --tank-focus: #9fd8ff;
+    --tank-yard-top: #14243a;
+    --tank-yard-bottom: #0b1522;
+    --tank-yard-line: #25394f;
+    --tank-yard-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* Maps a `data-tone` attribute to the level colour through `color`, so SVG
+   children can paint with `currentColor`. */
+@mixin tone-fill {
+  color: var(--tank-rest);
+  fill: currentColor;
+
+  &[data-tone='ok'] {
+    color: var(--tank-ok);
+  }
+
+  &[data-tone='mid'] {
+    color: var(--tank-mid);
+  }
+
+  &[data-tone='low'] {
+    color: var(--tank-low);
+  }
+}
