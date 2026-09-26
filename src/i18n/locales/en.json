@@ -1574,7 +1574,8 @@
     "chinese": "中文",
     "chinese_tw": "Traditional Chinese (Taiwan)",
     "english": "English",
-    "russian": "Русский"
+    "russian": "Русский",
+    "turkish": "Türkçe"
   },
   "theme": {
     "switch": "Theme",
@@ -1884,5 +1885,50 @@
     "modelCatalog": {
       "notLoaded": "Not loaded"
     }
+  },
+  "quota_tank": {
+    "headline_loading": "Reading your accounts…",
+    "headline_empty": "No accounts to watch yet.",
+    "headline_idle": "Quotas are not loaded yet.",
+    "headline_working_one": "{{count}} account working.",
+    "headline_working_other": "{{count}} accounts working.",
+    "headline_mixed_one": "{{count}} account working, {{resting}} resting.",
+    "headline_mixed_other": "{{count}} accounts working, {{resting}} resting.",
+    "headline_all_resting_one": "Your only account is resting.",
+    "headline_all_resting_other": "All {{count}} accounts are resting.",
+    "next_refill": "<0>{{name}}</0> refills first, in <1>{{time}}</1>.",
+    "free_resets_one": "<0>{{count}} free reset</0> available.",
+    "free_resets_other": "<0>{{count}} free resets</0> available.",
+    "unreadable_one": "{{count}} account could not be read.",
+    "unreadable_other": "{{count}} accounts could not be read.",
+    "pool_label": "{{provider}} pool",
+    "farm_label": "Account tanks",
+    "tank_open": "Show details for {{name}}",
+    "tank_aria": "{{name}}: {{session}} left in the short limit, {{weekly}} left this week",
+    "tank_resting": "Resting",
+    "tank_refills_in": "Refills in {{time}}",
+    "tank_until_refill": "until refill",
+    "tank_weekly": "Weekly {{percent}}",
+    "tank_failed": "Couldn't load",
+    "tank_idle": "Tap to load",
+    "tank_loading": "Loading",
+    "tank_free_resets_one": "{{count}} free reset",
+    "tank_free_resets_other": "{{count}} free resets",
+    "forecast_title": "Next 24 hours",
+    "forecast_desc": "When each account refills",
+    "forecast_label": "Refill forecast",
+    "forecast_now": "now",
+    "forecast_event_short": "{{name}}: short limit refills at {{time}}",
+    "forecast_event_weekly": "{{name}}: weekly limit refills at {{time}}",
+    "forecast_legend_short": "Short limit refills",
+    "forecast_legend_weekly": "Weekly limit refills",
+    "forecast_empty": "Nothing refills in the next 24 hours.",
+    "accounts_title": "Accounts",
+    "accounts_desc": "Every limit and action",
+    "duration_days": "{{d}}d {{h}}h",
+    "duration_hours": "{{h}}h {{m}}m",
+    "duration_minutes": "{{m}}m",
+    "duration_now": "now",
+    "percent": "{{value}}%"
   }
 }

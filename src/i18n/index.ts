@@ -8,6 +8,7 @@ import zhCN from './locales/zh-CN.json';
 import zhTW from './locales/zh-TW.json';
 import en from './locales/en.json';
 import ru from './locales/ru.json';
+import tr from './locales/tr.json';
 import { getInitialLanguage } from '@/utils/language';
 
 i18n.use(initReactI18next).init({
@@ -16,9 +17,12 @@ i18n.use(initReactI18next).init({
     'zh-TW': { translation: zhTW },
     en: { translation: en },
     ru: { translation: ru },
+    tr: { translation: tr },
   },
   lng: getInitialLanguage(),
-  fallbackLng: 'zh-CN',
+  // Turkish is a partial locale (quota page only); untranslated keys should read as English,
+  // not Chinese. Every other language keeps the historical zh-CN fallback.
+  fallbackLng: { tr: ['en'], default: ['zh-CN'] },
   interpolation: {
     escapeValue: false, // React 已经转义
   },

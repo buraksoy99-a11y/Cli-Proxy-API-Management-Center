@@ -1598,7 +1598,8 @@
     "chinese": "簡體中文",
     "chinese_tw": "繁體中文（台灣）",
     "english": "英文",
-    "russian": "俄文"
+    "russian": "俄文",
+    "turkish": "Türkçe"
   },
   "theme": {
     "switch": "主題",
@@ -1908,5 +1909,44 @@
     "modelCatalog": {
       "notLoaded": "未載入"
     }
+  },
+  "quota_tank": {
+    "headline_loading": "正在讀取帳號…",
+    "headline_empty": "目前沒有可監控的帳號。",
+    "headline_idle": "配額尚未載入。",
+    "headline_working_other": "{{count}} 個帳號正在運作。",
+    "headline_mixed_other": "{{count}} 個帳號正在運作，{{resting}} 個正在休息。",
+    "headline_all_resting_other": "全部 {{count}} 個帳號都在休息。",
+    "next_refill": "<0>{{name}}</0> 最先恢復，還需 <1>{{time}}</1>。",
+    "free_resets_other": "可用 <0>{{count}} 次免費重置</0>。",
+    "unreadable_other": "{{count}} 個帳號無法讀取。",
+    "pool_label": "{{provider}} 帳號池",
+    "farm_label": "帳號額度槽",
+    "tank_open": "檢視 {{name}} 的詳細資訊",
+    "tank_aria": "{{name}}：5 小時限額剩餘 {{session}}，本週剩餘 {{weekly}}",
+    "tank_resting": "休息中",
+    "tank_refills_in": "{{time}} 後恢復",
+    "tank_until_refill": "後恢復",
+    "tank_weekly": "週限額 {{percent}}",
+    "tank_failed": "載入失敗",
+    "tank_idle": "點選以載入",
+    "tank_loading": "載入中",
+    "tank_free_resets_other": "{{count}} 次免費重置",
+    "forecast_title": "未來 24 小時",
+    "forecast_desc": "各帳號何時恢復",
+    "forecast_label": "恢復預測",
+    "forecast_now": "現在",
+    "forecast_event_short": "{{name}}：5 小時限額於 {{time}} 恢復",
+    "forecast_event_weekly": "{{name}}：週限額於 {{time}} 恢復",
+    "forecast_legend_short": "5 小時限額恢復",
+    "forecast_legend_weekly": "週限額恢復",
+    "forecast_empty": "未來 24 小時內沒有帳號恢復。",
+    "accounts_title": "帳號",
+    "accounts_desc": "所有限額與操作",
+    "duration_days": "{{d}} 天 {{h}} 小時",
+    "duration_hours": "{{h}} 小時 {{m}} 分鐘",
+    "duration_minutes": "{{m}} 分鐘",
+    "duration_now": "現在",
+    "percent": "{{value}}%"
   }
 }

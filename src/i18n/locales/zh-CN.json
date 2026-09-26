@@ -1572,7 +1572,8 @@
     "chinese": "中文",
     "chinese_tw": "繁體中文（台灣）",
     "english": "English",
-    "russian": "Русский"
+    "russian": "Русский",
+    "turkish": "Türkçe"
   },
   "theme": {
     "switch": "主题",
@@ -1882,5 +1883,44 @@
     "modelCatalog": {
       "notLoaded": "未加载"
     }
+  },
+  "quota_tank": {
+    "headline_loading": "正在读取账号…",
+    "headline_empty": "暂无可监控的账号。",
+    "headline_idle": "额度尚未加载。",
+    "headline_working_other": "{{count}} 个账号正在工作。",
+    "headline_mixed_other": "{{count}} 个账号正在工作，{{resting}} 个正在休息。",
+    "headline_all_resting_other": "全部 {{count}} 个账号都在休息。",
+    "next_refill": "<0>{{name}}</0> 最先恢复，还需 <1>{{time}}</1>。",
+    "free_resets_other": "可用 <0>{{count}} 次免费重置</0>。",
+    "unreadable_other": "{{count}} 个账号无法读取。",
+    "pool_label": "{{provider}} 账号池",
+    "farm_label": "账号额度槽",
+    "tank_open": "查看 {{name}} 的详情",
+    "tank_aria": "{{name}}：5 小时限额剩余 {{session}}，本周剩余 {{weekly}}",
+    "tank_resting": "休息中",
+    "tank_refills_in": "{{time}} 后恢复",
+    "tank_until_refill": "后恢复",
+    "tank_weekly": "周限额 {{percent}}",
+    "tank_failed": "加载失败",
+    "tank_idle": "点击加载",
+    "tank_loading": "加载中",
+    "tank_free_resets_other": "{{count}} 次免费重置",
+    "forecast_title": "未来 24 小时",
+    "forecast_desc": "各账号何时恢复",
+    "forecast_label": "恢复预测",
+    "forecast_now": "现在",
+    "forecast_event_short": "{{name}}：5 小时限额于 {{time}} 恢复",
+    "forecast_event_weekly": "{{name}}：周限额于 {{time}} 恢复",
+    "forecast_legend_short": "5 小时限额恢复",
+    "forecast_legend_weekly": "周限额恢复",
+    "forecast_empty": "未来 24 小时内没有账号恢复。",
+    "accounts_title": "账号",
+    "accounts_desc": "全部限额与操作",
+    "duration_days": "{{d}} 天 {{h}} 小时",
+    "duration_hours": "{{h}} 小时 {{m}} 分钟",
+    "duration_minutes": "{{m}} 分钟",
+    "duration_now": "现在",
+    "percent": "{{value}}%"
   }
 }
