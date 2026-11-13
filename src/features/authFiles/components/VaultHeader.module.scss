@@ -109,7 +109,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--info-color);
     outline-offset: 2px;
   }
 }
@@ -150,7 +150,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--info-color);
     outline-offset: 2px;
   }
 }

@@ -534,9 +534,9 @@
   line-height: 1.5;
 
   &:focus {
-    border-color: var(--primary-color);
+    border-color: var(--info-color);
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 18%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--info-color) 18%, transparent);
   }
 }
 

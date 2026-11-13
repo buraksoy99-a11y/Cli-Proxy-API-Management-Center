@@ -74,7 +74,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--info-color);
     outline-offset: 3px;
   }
 }
@@ -165,7 +165,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--info-color);
     outline-offset: 2px;
   }
 }
@@ -253,7 +253,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--primary-color);
+    border-color: var(--info-color);
     box-shadow: 0 0 0 3px var(--primary-10);
   }
 }
@@ -307,7 +307,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--info-color);
     outline-offset: 2px;
   }
 

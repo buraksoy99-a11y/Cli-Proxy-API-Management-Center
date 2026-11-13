@@ -136,7 +136,7 @@
     &:focus-visible {
       outline: none;
       box-shadow:
-        0 0 0 2px color-mix(in srgb, var(--primary-color) 24%, transparent),
+        0 0 0 2px color-mix(in srgb, var(--info-color) 24%, transparent),
         4px 0 14px rgb(0 0 0 / 0.18);
     }
   }
@@ -197,7 +197,7 @@
 
     &:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-color) 26%, transparent);
     }
   }
 
@@ -259,7 +259,7 @@
     &:focus-visible {
       outline: none;
       background: color-mix(in srgb, var(--text-primary) 8%, transparent);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 22%, transparent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-color) 22%, transparent);
     }
 
     &.active {
@@ -301,7 +301,7 @@
 
     &:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 22%, transparent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--info-color) 22%, transparent);
     }
 
     &.active {

@@ -64,10 +64,10 @@
 }
 
 .input:focus-visible + .box {
-  border-color: var(--primary-color);
+  border-color: var(--info-color);
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--primary-color) 16%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--primary-color) 50%, transparent);
+    0 0 0 3px color-mix(in srgb, var(--info-color) 16%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--info-color) 50%, transparent);
 }
 
 .boxChecked {
