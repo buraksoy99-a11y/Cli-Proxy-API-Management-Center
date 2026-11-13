@@ -50,7 +50,8 @@
   &.btn-danger {
     background-color: var(--error-color);
     border-color: var(--error-color);
-    color: #fff;
+    // dark text on the light red of the dark theme, white on the deep red of light
+    color: var(--primary-contrast);
 
     &:hover {
       background-color: color-mix(in srgb, var(--error-color) 88%, #000);

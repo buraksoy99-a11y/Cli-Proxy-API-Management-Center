@@ -4,6 +4,7 @@
 
 // Light theme: Havuz Paneli light palette (neutral grey, blue accent)
 :root {
+  color-scheme: light;
   // 极简暖灰：浅色模式
   --bg-secondary: #f4f5f3; // 页面背景（纸感）
   --bg-primary: #ffffff; // 容器/卡片背景
@@ -82,7 +83,7 @@
 
   // 可视化配色：与语义色同源；深色模式下重新取步阶（见 [data-theme='dark']）。
   // 规则：翡翠绿只表达「活的流量」。
-  --viz-success: #1f6fd0;
+  --viz-success: #1f9a55;
   --viz-failure: #cf3f3f;
 
   // 动效词汇表：内置 ease 太弱，交互反馈统一用强减速曲线。
@@ -164,6 +165,7 @@
 
 // Dark theme (default for this internal tool): Havuz Paneli dark palette
 [data-theme='dark'] {
+  color-scheme: dark;
   // 极简暖灰：深色模式（提升对比度与层级）
   --bg-secondary: #0e1012; // 页面背景
   --bg-primary: #16191c; // 容器/卡片背景
@@ -236,7 +238,7 @@
 
   // 深色卡面上 #10b981 亮度超出 OKLCH 0.48–0.67 区间，且与失败色的色盲分离度不足，
   // 因此深色单独降一档。三套主题均已通过对比度/色盲/亮度校验。
-  --viz-success: #7fb8ff;
+  --viz-success: #5fd08a;
   --viz-failure: #ef6b6b;
 }
 

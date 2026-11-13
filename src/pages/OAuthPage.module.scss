@@ -206,12 +206,12 @@
   }
 
   &.error {
-    background-color: rgba($error-color, 0.12);
-    color: $error-color;
+    background-color: color-mix(in srgb, var(--error-color) 12%, transparent);
+    color: var(--error-color);
   }
 
   &.waiting {
-    background-color: rgba($primary-color, 0.12);
+    background-color: color-mix(in srgb, var(--primary-color) 12%, transparent);
     color: var(--primary-color);
   }
 }

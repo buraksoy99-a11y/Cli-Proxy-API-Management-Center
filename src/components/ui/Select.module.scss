@@ -38,14 +38,14 @@
     outline: none;
     box-shadow:
       var(--shadow),
-      0 0 0 3px rgba($primary-color, 0.18);
+      0 0 0 3px color-mix(in srgb, var(--info-color) 18%, transparent);
   }
 
   &[aria-expanded='true'] {
     border-color: var(--primary-color);
     box-shadow:
       var(--shadow),
-      0 0 0 3px rgba($primary-color, 0.18);
+      0 0 0 3px color-mix(in srgb, var(--info-color) 18%, transparent);
   }
 }
 
@@ -114,8 +114,8 @@
 }
 
 .optionActive {
-  border-color: rgba($primary-color, 0.5);
-  background: rgba($primary-color, 0.1);
+  border-color: color-mix(in srgb, var(--primary-color) 50%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
   font-weight: 600;
 }
 

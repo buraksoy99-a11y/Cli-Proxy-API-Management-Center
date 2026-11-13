@@ -148,8 +148,8 @@
   margin-top: $spacing-lg;
   padding: 12px 14px;
   border-radius: $radius-md;
-  border: 1px solid rgba($warning-color, 0.35);
-  background: rgba($warning-color, 0.1);
+  border: 1px solid color-mix(in srgb, var(--warning-color) 35%, transparent);
+  background: color-mix(in srgb, var(--warning-color) 10%, transparent);
 }
 
 .untrustedText {
