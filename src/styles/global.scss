@@ -12,6 +12,8 @@
 body {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
   transition:
     background-color $transition-normal,
     color $transition-normal;

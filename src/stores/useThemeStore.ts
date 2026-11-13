@@ -60,8 +60,9 @@ const applyTheme = (resolved: AppliedTheme) => {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'auto',
-      resolvedTheme: 'light',
+      // Internal tool: dark by default, light stays one click away.
+      theme: 'dark',
+      resolvedTheme: 'dark',
 
       setTheme: (theme) => {
         const resolved = resolveTheme(theme);

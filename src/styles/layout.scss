@@ -52,7 +52,7 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg-secondary) 88%, #0d0c0a) 0%,
+    color-mix(in srgb, var(--bg-secondary) 88%, #0b0d0f) 0%,
     color-mix(in srgb, var(--bg-secondary) 54%, transparent) 36%,
     color-mix(in srgb, var(--bg-secondary) 22%, transparent) 66%,
     transparent 100%
@@ -743,9 +743,9 @@
   padding: 9px 12px;
   overflow: hidden;
   border-radius: 10px;
-  background: #24211c;
-  color: #f6f4f1;
-  box-shadow: 0 14px 36px rgb(0 0 0 / 0.32);
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+  box-shadow: var(--floating-shadow);
   pointer-events: none;
   animation: nav-tooltip-in $transition-fast ease-out;
   transition: left $transition-normal;
@@ -763,7 +763,7 @@
     max-width: 100%;
     overflow-wrap: anywhere;
     font-size: 11.5px;
-    color: rgb(246 244 241 / 0.6);
+    color: color-mix(in srgb, var(--bg-secondary) 65%, transparent);
     white-space: normal;
   }
 }
