@@ -201,6 +201,103 @@ export const resolveClaudePlanType = (profile: ClaudeProfileResponse | null): st
   return null;
 };
 
+// Bucket names in the `anthropic-ratelimit-unified-<bucket>-*` response headers. `7d_oi` is the
+// Fable weekly bucket (observed 2026-11-16 alongside a Fable-only rejection).
+const CLAUDE_HEADER_BUCKETS = [
+  { bucket: '5h', id: 'five-hour', labelKey: 'claude_quota.five_hour', periodHours: 5 },
+  { bucket: '7d', id: 'seven-day', labelKey: 'claude_quota.seven_day', periodHours: 168 },
+  {
+    bucket: '7d_opus',
+    id: 'seven-day-opus',
+    labelKey: 'claude_quota.seven_day_opus',
+    periodHours: 168,
+  },
+  {
+    bucket: '7d_sonnet',
+    id: 'seven-day-sonnet',
+    labelKey: 'claude_quota.seven_day_sonnet',
+    periodHours: 168,
+  },
+  {
+    bucket: '7d_oi',
+    id: 'seven-day-fable',
+    labelKey: 'claude_quota.seven_day_fable',
+    periodHours: 168,
+  },
+] as const;
+
+const HEADER_PREFIX = 'anthropic-ratelimit-unified-';
+
+type HeaderSnapshot = { observedMs: number; signals: Record<string, string> };
+
+const readHeaderSnapshot = (value: unknown): HeaderSnapshot | null => {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as { observed_at?: unknown; signals?: unknown };
+  const observedMs =
+    typeof record.observed_at === 'string' ? Date.parse(record.observed_at) : Number.NaN;
+  if (!Number.isFinite(observedMs) || !record.signals || typeof record.signals !== 'object') {
+    return null;
+  }
+  const signals: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(record.signals as Record<string, unknown>)) {
+    if (typeof raw === 'string' || typeof raw === 'number') {
+      signals[key.trim().toLowerCase()] = String(raw).trim();
+    }
+  }
+  return { observedMs, signals };
+};
+
+/**
+ * Windows rebuilt from the rate-limit headers the proxy keeps from each account's last answer
+ * (`quota` and `model_quotas` on the auth-file entry). Used when Anthropic's usage endpoint
+ * refuses to answer (429): the numbers are as fresh as the account's last request. For every
+ * bucket the newest snapshot that carries it wins. Empty when the proxy has seen no headers.
+ */
+export const buildClaudeWindowsFromHeaders = (
+  file: AuthFileItem,
+  t: TFunction,
+  nowMs: number = Date.now()
+): ClaudeQuotaWindow[] => {
+  const snapshots: HeaderSnapshot[] = [];
+  const account = readHeaderSnapshot(file['quota']);
+  if (account) snapshots.push(account);
+  const perModel = file['model_quotas'];
+  if (perModel && typeof perModel === 'object') {
+    for (const value of Object.values(perModel as Record<string, unknown>)) {
+      const snapshot = readHeaderSnapshot(value);
+      if (snapshot) snapshots.push(snapshot);
+    }
+  }
+  snapshots.sort((a, b) => b.observedMs - a.observedMs);
+
+  const windows: ClaudeQuotaWindow[] = [];
+  for (const { bucket, id, labelKey, periodHours } of CLAUDE_HEADER_BUCKETS) {
+    const source = snapshots.find((s) => `${HEADER_PREFIX}${bucket}-utilization` in s.signals);
+    if (!source) continue;
+    const utilization = Number(source.signals[`${HEADER_PREFIX}${bucket}-utilization`]);
+    const resetSec = Number(source.signals[`${HEADER_PREFIX}${bucket}-reset`]);
+    const resetAtMs = Number.isFinite(resetSec) && resetSec > 0 ? resetSec * 1000 : null;
+    // A window whose reset already passed has started over since the snapshot was taken.
+    const expired = resetAtMs !== null && resetAtMs <= nowMs;
+    const usedPercent = Number.isFinite(utilization)
+      ? expired
+        ? 0
+        : Math.round(utilization * 1000) / 10
+      : null;
+    const resetIso = resetAtMs !== null && !expired ? new Date(resetAtMs).toISOString() : undefined;
+    windows.push({
+      id,
+      label: t(labelKey),
+      labelKey,
+      usedPercent,
+      resetLabel: formatQuotaResetTime(resetIso),
+      resetAtMs: expired ? null : resetAtMs,
+      periodHours,
+    });
+  }
+  return windows;
+};
+
 const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<ClaudeQuotaData> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
@@ -228,6 +325,23 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
   }
 
   const result = usageResult.value;
+  const planType =
+    profileResult.status === 'fulfilled' &&
+    profileResult.value.statusCode >= 200 &&
+    profileResult.value.statusCode < 300
+      ? resolveClaudePlanType(
+          parseClaudeProfilePayload(profileResult.value.body ?? profileResult.value.bodyText)
+        )
+      : null;
+
+  if (result.statusCode === 429) {
+    // Anthropic rate-limits its usage endpoint per account; fall back to the proxy's own copy of
+    // the rate-limit headers so the account still shows its limits instead of an error.
+    const fallback = buildClaudeWindowsFromHeaders(file, t);
+    if (fallback.length > 0) {
+      return { windows: fallback, planType, resetGrants: null };
+    }
+  }
 
   if (result.statusCode < 200 || result.statusCode >= 300) {
     throw createStatusError(getApiCallErrorMessage(result), result.statusCode);
@@ -239,14 +353,6 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
   }
 
   const windows = buildClaudeQuotaWindows(payload, t);
-  const planType =
-    profileResult.status === 'fulfilled' &&
-    profileResult.value.statusCode >= 200 &&
-    profileResult.value.statusCode < 300
-      ? resolveClaudePlanType(
-          parseClaudeProfilePayload(profileResult.value.body ?? profileResult.value.bodyText)
-        )
-      : null;
 
   return {
     windows,
