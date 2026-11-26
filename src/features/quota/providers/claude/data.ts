@@ -298,6 +298,13 @@ export const buildClaudeWindowsFromHeaders = (
   return windows;
 };
 
+/** True when the proxy reports that this account's OAuth login no longer works. */
+export const isClaudeLoginLost = (file: AuthFileItem): boolean => {
+  const raw = file.statusMessage ?? file['status_message'];
+  const message = typeof raw === 'string' ? raw.toLowerCase() : '';
+  return message.includes('unauthorized') || message.includes('refresh token');
+};
+
 const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<ClaudeQuotaData> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
@@ -334,9 +341,10 @@ const fetchClaudeQuota = async (file: AuthFileItem, t: TFunction): Promise<Claud
         )
       : null;
 
-  if (result.statusCode === 429) {
+  if (result.statusCode === 429 && !isClaudeLoginLost(file)) {
     // Anthropic rate-limits its usage endpoint per account; fall back to the proxy's own copy of
     // the rate-limit headers so the account still shows its limits instead of an error.
+    // Not for an account whose login is gone: its old numbers would make a dead account look fine.
     const fallback = buildClaudeWindowsFromHeaders(file, t);
     if (fallback.length > 0) {
       return { windows: fallback, planType, resetGrants: null };

@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 import type { TFunction } from 'i18next';
-import { buildClaudeWindowsFromHeaders } from '@/features/quota/providers/claude/data';
+import {
+  buildClaudeWindowsFromHeaders,
+  isClaudeLoginLost,
+} from '@/features/quota/providers/claude/data';
 import type { AuthFileItem } from '@/types';
 
 const t = ((key: string) => key) as TFunction;
@@ -72,5 +75,18 @@ describe('Claude windows from proxy rate-limit headers', () => {
   test('no snapshots means no windows (caller keeps the original error)', () => {
     expect(buildClaudeWindowsFromHeaders(file({}), t, NOW)).toEqual([]);
     expect(buildClaudeWindowsFromHeaders(file({ quota: { signals: {} } }), t, NOW)).toEqual([]);
+  });
+});
+
+describe('Claude login-lost detection', () => {
+  test('refresh-token failures and unauthorized count as lost, rate limits do not', () => {
+    expect(isClaudeLoginLost(file({ statusMessage: 'unauthorized (refresh token invalid)' }))).toBe(
+      true
+    );
+    expect(isClaudeLoginLost(file({ status_message: 'unauthorized' }))).toBe(true);
+    expect(
+      isClaudeLoginLost(file({ statusMessage: '{"error":{"type":"rate_limit_error"}}' }))
+    ).toBe(false);
+    expect(isClaudeLoginLost(file({}))).toBe(false);
   });
 });
